@@ -4,7 +4,7 @@ import cron from 'node-cron'
 import { transfer_function } from '../function/transfer_email.function';
 /***************************/
 const initial_demon = () => {
-    cron.schedule('* * * * *', () => {
+    cron.schedule('0,30 * * * *', () => {
         transfer_function()
     });
 }
