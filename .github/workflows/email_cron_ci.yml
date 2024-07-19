@@ -1,0 +1,40 @@
+name: Deploy to Production Microservices |company.inspector.systems|
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create variable .env
+        run: |
+          touch .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo GOOGLE_ID=${{ secrets.GOOGLE_ID }} >> .env
+          echo GOOGLE_SECRET=${{ secrets.GOOGLE_SECRET }} >> .env
+          echo OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }} >> .env
+          echo REDIRECT_URL_GOO=${{ secrets.REDIRECT_URL_GOO }} >> .env
+          echo EMAIL_DEF=${{ secrets.EMAIL_DEF }} >> .env
+          echo EMAIL_SEND=${{ secrets.EMAIL_SEND }} >> .env
+        
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build TypeScript
+        run: tsc
+
+      - name: Start the application or reload PM2
+        id: start_or_reload_pm2
+        run: |
+            pm2 restart demon.email
+        continue-on-error: true
+
+      - name: Check if PM2 reload/start succeeded
+        if: steps.start_or_reload_pm2.outcome == 'failure'
+        run: exit 1
